@@ -360,7 +360,7 @@ class EventTest extends TestCase
         $event = new Event($this->id, 'php -v');
         $event->preventOverlapping($lockDirectory, false);
 
-        file_put_contents($lockDirectory . '/crunz-' . md5('php -v'), '1');
+        file_put_contents($lockDirectory . '/crunz-' . md5('php -v'), '4758595690');
 
         $this->assertTrue($event->isLocked());
 

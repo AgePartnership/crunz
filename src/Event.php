@@ -705,7 +705,7 @@ class Event
     {
         $this->preventOverlapping = true;
         $this->lockDirectory = $lockDirectory;
-        $this->checkPid = true;
+        $this->checkPid = $checkPid;
 
         // Skip the event if it's locked (processing)
         $this->skip(function () {
