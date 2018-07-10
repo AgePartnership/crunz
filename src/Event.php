@@ -26,6 +26,10 @@ class Event
      */
     public $preventOverlapping = false;
 
+    private $lockDirectory = null;
+
+    private $checkPid = true;
+
     /**
      * The location that output should be sent to.
      *
@@ -697,9 +701,11 @@ class Event
      *
      * @return $this
      */
-    public function preventOverlapping()
+    public function preventOverlapping($lockDirectory = null, $checkPid = true)
     {
         $this->preventOverlapping = true;
+        $this->lockDirectory = $lockDirectory;
+        $this->checkPid = true;
 
         // Skip the event if it's locked (processing)
         $this->skip(function () {
@@ -1031,7 +1037,7 @@ class Event
         $hasPid = (null !== $pid);
 
         // No POSIX on Windows
-        if ($this->isWindows()) {
+        if ($this->isWindows() || !$this->checkPid) {
             return $hasPid;
         }
 
@@ -1057,7 +1063,11 @@ class Event
      */
     public function lockFile()
     {
-        return rtrim(sys_get_temp_dir(), '/') . '/crunz-' . md5($this->buildCommand());
+        if ($this->lockDirectory === null) {
+            $this->lockDirectory =\rtrim(\sys_get_temp_dir(), '/');
+        }
+
+        return $this->lockDirectory . '/crunz-' . \md5($this->buildCommand());
     }
 
     /**
