@@ -332,6 +332,52 @@ class EventTest extends TestCase
 
         $this->assertSame(PHP_BINARY . " {$crunzBin} closure:run {$queryClosure}", $command);
     }
+    /** @test */
+    public function usesSysTempAsLockDirectory()
+    {
+        $lockDirectory = sys_get_temp_dir();
+
+        $event = new Event($this->id, 'php -v');
+
+        $this->assertSame($lockDirectory . '/crunz-' . md5('php -v'), $event->lockFile());
+    }
+
+    /** @test */
+    public function changeLockDirectory()
+    {
+        $lockDirectory = __DIR__ . '/../lock';
+
+        $event = new Event($this->id, 'php -v');
+        $event->preventOverlapping($lockDirectory);
+
+        $this->assertSame($lockDirectory . '/crunz-' . md5('php -v'), $event->lockFile());
+
+    }
+
+    /** @test */
+    public function checkIfLocked()
+    {
+        $lockDirectory = __DIR__ . '/../lock';
+
+        $event = new Event($this->id, 'php -v');
+        $event->preventOverlapping($lockDirectory, false);
+
+        file_put_contents($lockDirectory . '/crunz-' . md5('php -v'), '1');
+
+        $this->assertTrue($event->isLocked());
+
+        $event = new Event($this->id, 'php -v');
+        $event->preventOverlapping($lockDirectory, true);
+
+        file_put_contents($lockDirectory . '/crunz-' . md5('php -v'), '5478484848');
+
+        $this->assertFalse($event->isLocked());
+
+        $event = new Event($this->id, 'php -v');
+        $event->preventOverlapping();
+        
+        $this->assertFalse($event->isLocked());
+    }
 
     private function isWindows()
     {
